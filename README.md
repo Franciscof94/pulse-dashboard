@@ -2,7 +2,7 @@
 
 A modern, responsive dashboard for music artists to track releases, sales analytics, and fan engagement metrics in real-time.
 
-![Dashboard Preview](./docs/screenshot.png)
+![Dashboard Preview](./docs/dashboard-preview.png)
 
 ## 🌐 Live Demo
 
