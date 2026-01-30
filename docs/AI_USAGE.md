@@ -16,6 +16,14 @@
 **AI Tool Used:** Claude Sonnet 4.5
 
 **Prompt/Approach:**
+```
+I need mock data for a music artist dashboard. Create:
+1. Sales data for last 30 days with realistic patterns (weekends should have more streams)
+2. Fan metrics: total fans, new fans this month, engagement rate, top country
+3. Recent releases: 6 albums/singles with title, artist, streams, revenue, release date
+
+Make it look realistic, not just random numbers. Use TypeScript types.
+```
 
 **Result:**
 - AI created generator functions instead of static arrays
@@ -24,7 +32,7 @@
 - Used as-is, no modifications needed
 
 **Learning:**
-AI gives working solutions but doesn't always consider DRY principles or existing libraries that solve the same problem better.
+The weekend multiplier idea was something I wouldn't have thought of. AI added domain knowledge that made the data feel real.
 
 -------------------------------------------------------------
 
@@ -88,7 +96,20 @@ AI gives working solutions but doesn't always consider DRY principles or existin
 **AI Tool Used:** Claude Sonnet 4.5
 
 **Prompt/Approach:**
-Got production error: "A tree hydrated but some attributes of the server-rendered HTML didn't match the client properties." Pasted the error message and asked AI to diagnose.
+```
+I'm getting this error:
+
+"Error: A tree hydrated but some attributes of the server-rendered HTML 
+didn't match the client properties."
+
+The diff shows height values are different:
+- height: "48.1005%" (server)
++ height: "85.6173%" (client)
+
+Here's my SalesChartSkeleton component: [pasted code with Math.random()]
+
+What's causing this and how do I fix it?
+```
 
 **Result:**
 - AI immediately identified `Math.random()` in SalesChartSkeleton as the culprit
@@ -101,73 +122,179 @@ Classic Next.js - anything non-deterministic (Date.now(), Math.random(), browser
 
 ---
 
-## Reflection
+## Reflection Questions
 
-### How I used AI strategically
+### a) AI Strategy
 
-Used Sonnet for speed (components, configs), Opus for complexity (architecture, hooks). Started with broad prompts, refined when things broke. AI crushed boilerplate and error fixes, but needed guidance on state management patterns.
+**How did you decide when to use AI vs code from scratch?**
 
-**What worked:**
-- Mock data with realistic patterns (weekend multipliers I wouldn't have thought of)
-- Quick error fixes (hydration bug in 2 min)
-- Eliminating repetitive typing
+I used AI for:
+- Boilerplate I've written 100 times (hooks structure, component scaffolding)
+- Config files where I know what I need but forget the exact syntax
+- Debugging errors faster than reading docs
+- Getting domain-specific ideas (like weekend multipliers for music data)
 
-**What didn't:**
-- Sidebar state issue - my prompt didn't mention shared state, so AI made it local
-- Hooks duplication - could've asked for DRY approach or just used a library
+I coded from scratch:
+- Architecture decisions (folder structure, state management approach)
+- Brand styling and responsive breakpoints
+- Component organization and naming
+- Trade-off evaluations (keeping duplicate hooks vs. making them generic)
 
-**Strategic call:** For this assignment I chose speed over perfect architecture. In a real project I'd use React Query instead of custom hooks, but building them shows I understand the patterns.
+**Were there any tasks where AI wasn't helpful? Why?**
 
----
+Yes, for a few reasons:
 
-### Code ownership vs. AI reliance
+- **Sidebar state management:** My prompt was not clear enough about the need to share state between Sidebar and main content. AI solved the sidebar itself, but not the global interaction. I learned you have to be very explicit about relationships between components, not just the behavior of one.
+- **Scalability and performance:** AI didn't suggest patterns like lazy loading components or code splitting, which are key in a real, larger project. It also didn't propose using generics in hooks to avoid duplication.
 
-**Stuff I barely touched:**
-Mock data generators, skeleton components, config files. These are solved problems with known patterns.
-
-**Stuff where I made the calls:**
-- Custom hooks: AI wrote them, I evaluated the duplication and chose to keep it for readability
-- Sidebar architecture: AI implemented the fix but I decided between lifting state, CSS `:has()`, or Context
-- Component organization: moved AI's files into feature folders
-
-**Stuff that's all me:**
-Brand colors (based on logo), responsive strategy (1→2→4 grid breakpoints), README structure, scope decisions (what to skip).
-
-**Bottom line:** Every line is my responsibility. I reviewed everything and made conscious trade-offs. The hooks are duplicated because I chose readability over DRY for a demo.
+In short: AI is great for concrete tasks, but for architecture, performance, and scalability decisions, human intervention is still essential.
 
 ---
 
-### Quality assurance
+### b) Code Ownership
 
-**What I did:**
-- ✅ Reviewed every line of AI code
-- ✅ Tested on mobile, tablet, desktop
-- ✅ Tested error states, slow network, image failures
-- ✅ Asked "why this approach?" instead of blindly accepting
-- ✅ Documented trade-offs in README
+**How did you ensure you understood all AI-generated code?**
 
-**What I skipped (wouldn't in production):**
-- ❌ Unit tests
-- ❌ Accessibility audit  
-- ❌ Performance profiling
+My rule: if I can't explain a line, I don't merge it. 
 
-**My rule:** If I can't explain how the code works, I don't merge it. Example: I know why AbortController is there (prevents memory leaks on unmount). If I didn't understand it, I'd either ask AI to explain or rewrite it myself.
+For example, the AbortController in the hooks:
+```tsx
+controller.signal.addEventListener("abort", () => {
+  clearTimeout(timeout);
+  reject(new Error("Aborted"));
+});
+```
+I know this prevents memory leaks when the component unmounts mid-fetch. If I didn't understand it, I'd either ask AI to explain or rewrite it myself.
+
+I also ran through each component mentally: "What happens if this prop is undefined? What if the API fails? What if the user navigates away?"
+
+**Describe one piece of AI-generated code you significantly modified and why.**
+
+The sidebar expansion logic. AI's first version had the `isExpanded` state inside `Sidebar.tsx`:
+
+```tsx
+// AI's version - state trapped inside
+const Sidebar = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  // ... rest of component
+}
+```
+
+This meant `DashboardLayout` couldn't know when the sidebar expanded to adjust the main content's padding. I asked AI to lift the state:
+
+```tsx
+// My fix - state in parent, passed down
+const DashboardLayout = ({ children }) => {
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  
+  return (
+    <>
+      <Sidebar expanded={sidebarExpanded} onExpandChange={setSidebarExpanded} />
+      <main className={sidebarExpanded ? 'ml-64' : 'ml-16'}>
+        {children}
+      </main>
+    </>
+  );
+}
+```
+
+---
+
+### c) Productivity Impact
+
+**Estimate how much time AI saved you (or didn't).**
+
+Total time: ~4.5 hours
+AI saved: ~2-3 hours on boilerplate and debugging
+
+Breakdown:
+- Mock data generators: 30 min → 5 min (saved 25 min)
+- Skeleton components: 20 min → 5 min (saved 15 min)  
+- Hydration bug: 20 min → 2 min (saved 18 min)
+- Config files (eslint, next.config, tailwind): 30 min → 10 min (saved 20 min)
+- Custom hooks: 30 min → 10 min (saved 30 min)
+- Component scaffolding: Would've taken 2+ hours, done in 40 min
+
+**What would you have done differently without AI tools?**
+
+Without AI:
+- Mock data: Without AI, I wouldn’t have implemented generator functions. I would have hardcoded all values directly into static arrays instead of deriving daily, weekly, and monthly data programmatically.
+
+- Code structure and cleanliness: Without AI assistance, the codebase would be less clean and consistent. Naming would be weaker, semantics less clear, Tailwind classes more ad-hoc, and more logic would likely live inside components instead of being properly separated into hooks, utilities, and typed modules.
+
+---
+
+### d) Quality Assurance
+
+**How did you validate AI-generated code?**
+
+1. **Read every line** - No blind copy-paste
+2. **Test edge cases** - Empty data, errors, slow network (throttled in DevTools)
+3. **Mobile testing** - Responsive on actual viewport sizes, not just "responsive mode"
+4. **Ask "why"** - For any pattern I didn't recognize, I asked AI to explain or researched it
+
+**Did you catch any issues or mistakes from AI suggestions?**
+
+Yes, several:
+
+1. **Hooks duplication** - AI created 3 identical hooks instead of a generic `useAsyncData<T>`. I noticed but kept it for readability (conscious trade-off).
+
+2. **Sidebar state locality** - AI's first version didn't account for shared state needs. Had to iterate.
+
+3. **TypeScript generics missing** - AI didn't suggest using generics for the data fetching pattern. For production, I'd refactor to:
+```tsx
+function useAsyncData<T>(fetcher: () => Promise<T>): UseAsyncReturn<T>
+```
+4. **Accessibility gaps** - AI-generated components were missing `aria-label` on icon-only buttons. I added them.
+
+---
+
+## Technical Decisions Not Made by AI
+
+### Why No TypeScript Generics in Hooks?
+
+AI created 3 separate hooks (`useReleases`, `useSalesData`, `useFanMetrics`) with identical structure instead of one generic hook:
+
+```tsx
+// What AI could have suggested (but didn't):
+function useAsyncData<T>(
+  fetcher: () => Promise<T>,
+  options?: { delay?: number }
+): {
+  data: T | null;
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => void;
+}
+```
+
+**Why I kept the duplication:**
+1. Each hook is self-contained and readable
+2. For 3 hooks, the duplication is manageable
+3. Adding generics adds complexity for little benefit at this scale
+4. In a real project, I'd use React Query which already handles this
+
+**What I'd do differently in production:**
+- Use React Query or SWR (built-in caching, deduplication, generics)
+- Or create the generic hook if building from scratch
+- The current approach is fine for a demo but wouldn't scale to 10+ data sources
 
 ---
 
 ## Deep Dive: Hydration Mismatch & SSR Pitfalls
 
 ### The Problem
-Built a loading skeleton for the sales chart with animated bars. Looked great in dev, then deployed to Vercel and got this error:
+Built a loading skeleton for the sales chart with animated bars. While developing locally, React started throwing this error:
 
 ```
 Error: Hydration failed because the server rendered HTML didn't match the client.
 ```
 
-React was showing me diffs like:
+React showed diffs like:
 ```diff
 - height: "48.1005%"  (server)
 + height: "85.6173%"  (client)
+
 ```
 
 ### The Root Cause
@@ -189,9 +316,12 @@ Here's what was happening:
 3. **React freaks out** → "Server and client don't match! Abort!"
 
 ### Why I Didn't Catch This Earlier
-- `npm run dev` uses client-side rendering mostly, so hydration errors don't show up
-- Only saw it after `npm run build && npm start` (production mode)
-- This is a classic Next.js gotcha - any non-deterministic code breaks SSR
+- The hydration mismatch occurred during local development; the UI still rendered correctly, so the warning was easy to overlook.
+- Non-deterministic expressions (`Math.random()`, `Date.now()`, browser-only APIs) are the usual suspects and are easy to miss when sketching UI.
+- Tip: when you suspect an SSR/hydration issue, reproduce with a production build to confirm:  
+  ```bash
+  npm run build && npm run dev
+
 
 ### The Fix
 AI spotted `Math.random()` immediately from the error trace and suggested:
@@ -239,17 +369,11 @@ const seededRandom = (seed: number) => {
 Just use fixed values. It's a skeleton, doesn't need to be random.
 
 ### Reflection
-This took AI 2 minutes to diagnose. Would've taken me 15-20 minutes digging through React DevTools and Next.js docs. But I should've known this pattern. The fact that AI caught it faster means I need to review SSR fundamentals.
-
-Also learned: always test production builds before deploying. `npm run dev` hides these issues.
+AI found the issue in 2 minutes. Sin AI, hubiera tardado mucho más revisando el código y la documentación. Aprendí a evitar patrones no deterministas en SSR y a revisar bien los componentes en local.
 
 ---
 
 ## Summary
 
-**Time spent:** ~6 hours total, AI saved maybe 3-4 hours on boilerplate  
+**Time spent:** ~4.5 hours total, AI saved ~2 hours on boilerplate and debugging  
 **Biggest win:** Mock data patterns and quick error fixes  
-**Biggest learning:** Need to be way more explicit about state management in prompts  
-**Production readiness:** This code works for a demo, but needs tests and real data fetching
-
-**Real talk:** AI sped things up but I still had to make all the architectural decisions. The custom hooks are duplicated, the sidebar state took iteration, and I spent time reviewing every line. It's not "AI wrote my code" - it's "AI handled the boring parts so I could focus on the hard problems."
