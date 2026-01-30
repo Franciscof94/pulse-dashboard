@@ -21,11 +21,13 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
       />
       <main
         className={cn(
-          "pt-16 min-h-screen pb-16 md:pb-0 transition-all duration-300 ease-in-out",
+          "pt-16 min-h-screen transition-all duration-300 ease-in-out",
           isSidebarExpanded ? "md:pl-64" : "md:pl-16",
         )}
       >
-        <div className="p-4 md:p-6">{children}</div>
+        <div className="p-3 pb-20 sm:p-4 sm:pb-20 md:p-6 md:pb-6 lg:p-8 max-w-[1600px] mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   );
