@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { FC, useState } from "react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,13 +12,13 @@ interface ReleaseCardProps {
   release: Release;
 }
 
-export function ReleaseCard({ release }: ReleaseCardProps) {
+export const ReleaseCard: FC<ReleaseCardProps> = ({ release }) => {
   const [imgError, setImgError] = useState(false);
 
-  const placeholderUrl = `https://placehold.co/400x400/1a1a2e/ffffff?text=${encodeURIComponent(release.title.charAt(0))}`;
+  const placeholderUrl = `https://picsum.photos/seed/${encodeURIComponent(release.id)}/400/400`;
 
   return (
-    <Card className="group overflow-hidden transition-transform duration-200 hover:scale-[1.02] hover:shadow-md cursor-pointer">
+    <Card className="group overflow-hidden transition-transform duration-200 hover:scale-[1.02] hover:shadow-md cursor-pointer p-0">
       <div className="relative aspect-square overflow-hidden">
         <Image
           src={imgError ? placeholderUrl : release.coverArt}
@@ -49,4 +49,4 @@ export function ReleaseCard({ release }: ReleaseCardProps) {
       </CardContent>
     </Card>
   );
-}
+};
